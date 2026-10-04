@@ -1,475 +1,178 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Flow Studio - Visual Node Workflow Editor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#0f172a',
-                        nodebg: '#1e293b',
-                        bordercolor: '#334155',
-                        accent: '#6366f1',
-                        accenthover: '#4f46e5',
-                    }
-                }
-            }
-        }
-    </script>
+    <title>AI Flow Studio — بدون مفتاح</title>
     <style>
+        * {margin:0; padding:0; box-sizing:border-box; font-family:Tahoma, sans-serif;}
         body {
-            user-select: none;
-            overflow: hidden;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        #api-screen {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, #0f172a, #1e1b4b);
-            z-index: 9999;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
-        #canvas-container {
-            background-color: #0b0f19;
-            background-image: radial-gradient(circle, #1e293b 1px, transparent 1px);
-            background-size: 24px 24px;
+        .container {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 20px;
+            padding: 35px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.15);
         }
-        .flow-node {
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
-            transition: box-shadow 0.2s, border-color 0.2s;
+        .icon {
+            width: 70px; height: 70px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px; color: white;
         }
-        .flow-node.selected {
-            border-color: #818cf8 !important;
-            box-shadow: 0 0 15px rgba(99,102,241,0.4);
+        h1 {color: white; text-align: center; font-size: 24px; margin-bottom: 8px;}
+        .subtitle {color: #94a3b8; text-align: center; margin-bottom: 30px;}
+        .tab {
+            display: flex; gap: 10px; margin-bottom: 25px;
         }
-        .port {
-            width: 14px; height: 14px; border-radius: 50%;
-            background: #475569; border: 2px solid #94a3b8;
-            cursor: pointer; transition: transform 0.15s;
+        .tab-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 10px;
+            background: #334155; color: #cbd5e1; cursor: pointer;
+            transition: all 0.3s;
         }
-        .port:hover { transform: scale(1.3); background: #818cf8; border-color: #fff; }
-        .port.port-connected { background: #10b981; border-color: #a7f3d0; }
-        .connection-path { stroke: #6366f1; stroke-width: 3; fill: none; cursor: pointer; }
-        .connection-path:hover { stroke: #f43f5e; stroke-width: 5; }
-        .temp-path { stroke: #a5b4fc; stroke-width: 3; stroke-dasharray: 6; fill: none; animation: dash 1s linear infinite; }
-        @keyframes dash { to { stroke-dashoffset: -12; } }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; font-weight: bold;
+        }
+        textarea, #prompt {
+            width: 100%; padding: 15px; border-radius: 10px;
+            border: 1px solid #475569; background: #1e293b;
+            color: white; font-size: 16px; margin-bottom: 20px;
+            resize: vertical; min-height: 120px;
+        }
+        button {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            font-size: 18px; font-weight: bold; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {transform: scale(1.02);}
+        .primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; margin-bottom: 15px;
+        }
+        .result {
+            margin-top: 20px; padding: 20px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px; color: #e2e8f0;
+            white-space: pre-wrap; line-height: 1.6;
+            display: none;
+        }
+        .loading {text-align: center; color: #a5b4fc; display: none;}
+        .info {
+            margin-top: 15px; font-size: 13px; color: #64748b; text-align: center;
+        }
     </style>
 </head>
-<body class="bg-darkbg text-slate-100 h-screen flex flex-col antialiased">
+<body>
+    <div class="container">
+        <div class="icon">⚡</div>
+        <h1>AI Flow Studio</h1>
+        <p class="subtitle">يعمل مباشرة — لا تحتاج أي مفتاح ✅</p>
 
-    <!-- شاشة إدخال المفتاح - تظهر أولاً 🔐 -->
-    <div id="api-screen">
-        <div class="w-full max-w-md bg-slate-900/90 backdrop-blur border border-indigo-500/30 rounded-2xl p-6 shadow-2xl">
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 rounded-xl bg-indigo-600 flex items-center justify-center mx-auto mb-3">
-                    <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
-                </div>
-                <h2 class="text-xl font-bold text-white">AI Flow Studio</h2>
-                <p class="text-slate-400 text-sm mt-1">أدخل مفتاح Gemini API الخاص بك للبدء</p>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">مفتاح Gemini API</label>
-                    <input type="password" id="api-key-input" 
-                        class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
-                        placeholder="AIzaSyxxxxxxxxxxxxxxxxxxxx">
-                    <p class="text-xs text-slate-500 mt-1">احصل على مفتاحك مجاناً من: <a href="https://aistudio.google.com" target="_blank" class="text-indigo-400 hover:underline">aistudio.google.com</a></p>
-                </div>
-                <button id="start-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-rocket"></i> تشغيل البرنامج
-                </button>
-                <p class="text-xs text-slate-500 text-center">
-                    🔒 المفتاح يبقى في متصفحك فقط ولا يُرسل لأي خادم آخر
-                </p>
-            </div>
+        <div class="tab">
+            <button class="tab-btn active" data-tab="chat">محادثة</button>
+            <button class="tab-btn" data-tab="code">مولد كود</button>
         </div>
+
+        <div id="chat-panel">
+            <textarea id="prompt" placeholder="اكتب سؤالك أو طلبك هنا..."></textarea>
+            <button class="primary" onclick="sendMessage()">🚀 إرسال وتشغيل</button>
+        </div>
+
+        <div id="code-panel" style="display:none;">
+            <textarea id="code-prompt" placeholder="صف لي الكود الذي تريد إنشائه..."></textarea>
+            <button class="primary" onclick="generateCode()">💻 إنشاء الكود</button>
+        </div>
+
+        <div class="loading" id="loading">⏳ جاري المعالجة...</div>
+        <div class="result" id="result"></div>
+        <p class="info">مدعوم بـ Hugging Face — مجاني بالكامل ✅</p>
     </div>
 
-    <!-- باقي المحتوى مخفي حتى إدخال المفتاح -->
-    <div id="main-app" class="hidden flex flex-col h-screen">
+<script>
+const HF_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2";
 
-    <header class="h-14 border-b border-bordercolor bg-slate-900/90 backdrop-blur px-4 flex items-center justify-between z-20 shrink-0">
-        <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">
-                <i class="fa-solid fa-diagram-project text-sm"></i>
-            </div>
-            <div>
-                <h1 class="font-bold text-base tracking-wide flex items-center gap-2">
-                    AI Flow Studio
-                    <span class="text-xs font-normal px-2 py-0.5 bg-indigo-950 text-indigo-400 border border-indigo-800 rounded-full">v2.0</span>
-                </h1>
-            </div>
-        </div>
-        <div class="flex items-center space-x-2">
-            <button id="btn-run-all" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition">
-                <i class="fa-solid fa-play text-xs"></i> تشغيل الكل
-            </button>
-            <button id="btn-clear" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-bordercolor px-3 py-1.5 rounded-md text-sm">
-                <i class="fa-solid fa-trash-can mr-1"></i> مسح
-            </button>
-        </div>
-    </header>
+// تبديل الألواح
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.tab;
+        document.getElementById('chat-panel').style.display = tab === 'chat' ? 'block' : 'none';
+        document.getElementById('code-panel').style.display = tab === 'code' ? 'block' : 'none';
+        document.getElementById('result').style.display = 'none';
+    });
+});
 
-    <div class="flex flex-1 overflow-hidden relative">
-        <aside class="w-64 border-r border-bordercolor bg-slate-900 flex flex-col shrink-0 z-10">
-            <div class="p-3 border-b border-bordercolor font-semibold text-xs uppercase text-slate-400">
-                <i class="fa-solid fa-cubes mr-1"></i> مكتبة العقد
-            </div>
-            <div class="p-3 space-y-2 overflow-y-auto flex-1">
-                <p class="text-xs text-slate-500 mb-2">انقر لإضافة عقد:</p>
-                
-                <div class="node-template bg-slate-800/80 hover:bg-slate-700/80 border border-bordercolor rounded-lg p-3 cursor-pointer" data-type="text-prompt">
-                    <span class="text-sm font-semibold text-indigo-400"><i class="fa-solid fa-font mr-2"></i>نص وصفي</span>
-                </div>
-                <div class="node-template bg-slate-800/80 hover:bg-slate-700/80 border border-bordercolor rounded-lg p-3 cursor-pointer" data-type="llm-expander">
-                    <span class="text-sm font-semibold text-emerald-400"><i class="fa-solid fa-brain mr-2"></i>محسّن النصوص</span>
-                </div>
-                <div class="node-template bg-slate-800/80 hover:bg-slate-700/80 border border-bordercolor rounded-lg p-3 cursor-pointer" data-type="image-generator">
-                    <span class="text-sm font-semibold text-purple-400"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>مولّد الصور</span>
-                </div>
-                <div class="node-template bg-slate-800/80 hover:bg-slate-700/80 border border-bordercolor rounded-lg p-3 cursor-pointer" data-type="image-output">
-                    <span class="text-sm font-semibold text-amber-400"><i class="fa-solid fa-image mr-2"></i>معاينة الصورة</span>
-                </div>
-            </div>
-            <div class="p-3 border-t border-bordercolor">
-                <button id="btn-load-preset" class="w-full bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 text-xs py-2 rounded">
-                    <i class="fa-solid fa-diagram-next mr-1"></i> تحميل سير عمل جاهز
-                </button>
-            </div>
-        </aside>
-
-        <main id="canvas-container" class="flex-1 relative overflow-hidden cursor-crosshair">
-            <svg id="svg-layer" class="absolute inset-0 w-full h-full pointer-events-none z-0">
-                <path id="temp-line" class="temp-path hidden" d="M 0 0 C 0 0, 0 0, 0 0" />
-            </svg>
-            <div id="nodes-container" class="absolute inset-0 z-10 pointer-events-none"></div>
-        </main>
-    </div>
-
-    <footer class="h-28 border-t border-bordercolor bg-slate-900 flex flex-col shrink-0">
-        <div class="h-7 px-3 bg-slate-950 border-b border-bordercolor flex items-center justify-between text-xs text-slate-400">
-            <div class="flex items-center gap-2">
-                <span id="status-indicator" class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span id="status-text">جاهز ✅</span>
-            </div>
-        </div>
-        <div id="console-log" class="flex-1 p-2 font-mono text-xs overflow-y-auto bg-slate-950/80 text-slate-300">
-            <div class="text-slate-500">[النظام جاهز]</div>
-        </div>
-    </footer>
-
-    </div><!-- نهاية التطبيق الرئيسي -->
-
-    <script>
-        // المتغير العام للمفتاح — سيتم تعيينه من المستخدم
-        let apiKey = "";
-
-        // شاشة إدخال المفتاح
-        const apiScreen = document.getElementById('api-screen');
-        const mainApp = document.getElementById('main-app');
-        const keyInput = document.getElementById('api-key-input');
-        const startBtn = document.getElementById('start-btn');
-
-        startBtn.addEventListener('click', () => {
-            const key = keyInput.value.trim();
-            if (!key) {
-                alert("أدخل المفتاح أولاً!");
-                return;
+async function queryAI(prompt) {
+    const response = await fetch(HF_API_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            inputs: prompt,
+            parameters: {
+                max_new_tokens: 1024,
+                temperature: 0.7,
+                top_p: 0.9,
+                return_full_text: false
             }
-            apiKey = key;
-            apiScreen.classList.add('hidden');
-            mainApp.classList.remove('hidden');
-            initApp(); // تشغيل باقي البرنامج
-        });
+        })
+    });
+    if (!response.ok) throw new Error("خطأ في الاتصال");
+    const data = await response.json();
+    return data[0]?.generated_text || "لم يتم الحصول على رد";
+}
 
-        function initApp() {
-            const canvasContainer = document.getElementById('canvas-container');
-            const nodesContainer = document.getElementById('nodes-container');
-            const svgLayer = document.getElementById('svg-layer');
-            const tempLine = document.getElementById('temp-line');
-            const consoleLog = document.getElementById('console-log');
-            const statusText = document.getElementById('status-text');
-            const statusIndicator = document.getElementById('status-indicator');
+async function sendMessage() {
+    const prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) { alert("اكتب طلبك أولاً!"); return; }
+    
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+    
+    try {
+        const result = await queryAI(prompt);
+        document.getElementById('result').textContent = result;
+        document.getElementById('result').style.display = 'block';
+    } catch (err) {
+        document.getElementById('result').innerHTML = "❌ خطأ: " + err.message + "<br>جرب مرة أخرى بعد دقيقة";
+        document.getElementById('result').style.display = 'block';
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
 
-            let nodes = [];
-            let connections = [];
-            let activePort = null;
-            let isDraggingNode = false, draggedNode = null, dragOffset = {x:0,y:0};
-
-            function log(msg, type='info') {
-                const entry = document.createElement('div');
-                const time = new Date().toLocaleTimeString();
-                const colors = {info:'text-slate-300', error:'text-rose-400', success:'text-emerald-400', process:'text-amber-400'};
-                entry.className = colors[type];
-                entry.innerHTML = `<span class="text-slate-600">[${time}]</span> ${msg}`;
-                consoleLog.appendChild(entry);
-                consoleLog.scrollTop = consoleLog.scrollHeight;
-            }
-            function setStatus(text, state='ready') {
-                statusText.innerText = text;
-                statusIndicator.className = state==='busy'?'w-2 h-2 rounded-full bg-amber-500 animate-ping':
-                                           state==='error'?'w-2 h-2 rounded-full bg-rose-500':
-                                           'w-2 h-2 rounded-full bg-emerald-500';
-            }
-
-            function createNode(type, x=100, y=100, data={}) {
-                const id = `node-${Date.now()}-${Math.floor(Math.random()*1000)}`;
-                const el = document.createElement('div');
-                el.id = id;
-                el.className = 'flow-node absolute w-72 bg-nodebg border border-bordercolor rounded-xl overflow-hidden pointer-events-auto flex flex-col text-xs';
-                el.style.left = x+'px'; el.style.top = y+'px';
-
-                let header='', body='', ports='';
-                if (type==='text-prompt') {
-                    header='<i class="fa-solid fa-font text-indigo-400 mr-2"></i>نص وصفي';
-                    body=`<div class="p-3"><textarea class="node-input-text w-full h-24 bg-slate-900 border border-bordercolor rounded-lg p-2 text-slate-200" placeholder="اكتب وصف الصورة...">${data.text||''}</textarea></div>`;
-                    ports='<div class="port port-out absolute -right-2 top-12" data-port-type="out"></div>';
-                } else if (type==='llm-expander') {
-                    header='<i class="fa-solid fa-brain text-emerald-400 mr-2"></i>محسّن النصوص';
-                    body=`<div class="p-3"><select class="node-style-select w-full bg-slate-900 border border-bordercolor rounded-lg p-2 mb-2">
-                        <option>سينمائي واقعي</option><option>رسوم متحركة</option><option>خيال علمي</option><option>لوحة فنية</option>
-                    </select><button class="btn-node-run w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-white">تحسين ✨</button></div>`;
-                    ports='<div class="port port-in absolute -left-2 top-12" data-port-type="in"></div><div class="port port-out absolute -right-2 top-12" data-port-type="out"></div>';
-                } else if (type==='image-generator') {
-                    header='<i class="fa-solid fa-wand-magic-sparkles text-purple-400 mr-2"></i>مولّد الصور';
-                    body=`<div class="p-3"><select class="node-aspect-select w-full bg-slate-900 border border-bordercolor rounded-lg p-2 mb-2">
-                        <option>1:1 مربع</option><option>16:9 عرضي</option><option>9:16 عمودي</option>
-                    </select><button class="btn-node-run w-full bg-purple-600 hover:bg-purple-500 py-2 rounded-lg text-white">إنشاء 🎨</button></div>`;
-                    ports='<div class="port port-in absolute -left-2 top-12" data-port-type="in"></div><div class="port port-out absolute -right-2 top-12" data-port-type="out"></div>';
-                } else if (type==='image-output') {
-                    header='<i class="fa-solid fa-image text-amber-400 mr-2"></i>معاينة الصورة';
-                    body=`<div class="p-3"><div class="image-preview-box w-full h-48 bg-slate-900 border border-dashed border-bordercolor rounded-lg flex items-center justify-center text-slate-500">
-                        <i class="fa-regular fa-image text-2xl"></i>
-                    </div></div>`;
-                    ports='<div class="port port-in absolute -left-2 top-12" data-port-type="in"></div>';
-                }
-
-                el.innerHTML = `<div class="node-header bg-slate-800 px-3 py-2 border-b border-bordercolor flex justify-between items-center cursor-move">
-                    <span class="font-semibold">${header}</span>
-                    <button class="btn-delete-node text-slate-400 hover:text-rose-400"><i class="fa-solid fa-xmark"></i></button>
-                </div>${body}${ports}`;
-                nodesContainer.appendChild(el);
-                const nodeObj = {id, type, element:el, x, y, data};
-                nodes.push(nodeObj);
-                setupEvents(nodeObj);
-                log(`تمت إضافة: ${type}`);
-                return nodeObj;
-            }
-
-            function setupEvents(node) {
-                const el = node.element;
-                el.addEventListener('mousedown', () => {
-                    nodes.forEach(n=>n.element.classList.remove('selected'));
-                    el.classList.add('selected');
-                });
-                el.querySelector('.node-header').addEventListener('mousedown', e=>{
-                    isDraggingNode=true; draggedNode=node;
-                    const rect=el.getBoundingClientRect(), c=canvasContainer.getBoundingClientRect();
-                    dragOffset.x=e.clientX-rect.left; dragOffset.y=e.clientY-rect.top;
-                    e.stopPropagation();
-                });
-                el.querySelector('.btn-delete-node').onclick=e=>{e.stopPropagation(); deleteNode(node.id);};
-                if(el.querySelector('.btn-node-run')) el.querySelector('.btn-node-run').onclick=()=>executeNode(node);
-                el.querySelectorAll('.port').forEach(p=>p.addEventListener('mousedown',e=>{e.stopPropagation(); startConnection(p,node);}));
-            }
-
-            function deleteNode(id) {
-                connections=connections.filter(c=>{
-                    if(c.fromNode.id===id||c.toNode.id===id){c.pathEl.remove();return false;}return true;
-                });
-                const i=nodes.findIndex(n=>n.id===id);
-                if(i>-1){nodes[i].element.remove();nodes.splice(i,1);log('تم حذف العقدة');}
-                updatePortsHighlight();
-            }
-
-            function startConnection(port, node) {
-                activePort={el:port, node, type:port.dataset.portType};
-                tempLine.classList.remove('hidden');
-            }
-            function finishConnection(targetPort, targetNode) {
-                if(!activePort) return;
-                if(activePort.type===targetPort.dataset.portType){log('لا يمكن ربط نفس النوع','error');resetTempLine();return;}
-                if(activePort.node.id===targetNode.id){log('لا يمكن ربط العقدة بنفسها','error');resetTempLine();return;}
-
-                const outPort=activePort.type==='out'?activePort.el:targetPort;
-                const inPort=activePort.type==='in'?activePort.el:targetPort;
-                const fromNode=activePort.type==='out'?activePort.node:targetNode;
-                const toNode=activePort.type==='in'?activePort.node:targetNode;
-
-                if(connections.some(c=>c.outPort===outPort&&c.inPort===inPort)){resetTempLine();return;}
-
-                const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-                path.setAttribute('class','connection-path');
-                svgLayer.appendChild(path);
-                const conn={outPort, inPort, fromNode, toNode, pathEl:path};
-                path.onclick=()=>{path.remove();connections=connections.filter(c=>c!==conn);updatePortsHighlight();log('تم حذف الربط');};
-                connections.push(conn);
-                updateConnections();
-                updatePortsHighlight();
-                log(`تم الربط: ${fromNode.type} → ${toNode.type}`,'success');
-                resetTempLine();
-            }
-            function resetTempLine(){activePort=null;tempLine.classList.add('hidden');}
-            function bezier(x1,y1,x2,y2){const d=Math.abs(x2-x1)*0.5;return`M ${x1} ${y1} C ${x1+d} ${y1}, ${x2-d} ${y2}, ${x2} ${y2}`;}
-            function updateConnections(){
-                const c=canvasContainer.getBoundingClientRect();
-                connections.forEach(conn=>{
-                    const o=conn.outPort.getBoundingClientRect(), i=conn.inPort.getBoundingClientRect();
-                    const x1=o.left+o.width/2-c.left, y1=o.top+o.height/2-c.top;
-                    const x2=i.left+i.width/2-c.left, y2=i.top+i.height/2-c.top;
-                    conn.pathEl.setAttribute('d',bezier(x1,y1,x2,y2));
-                });
-            }
-            function updatePortsHighlight(){
-                document.querySelectorAll('.port').forEach(p=>p.classList.remove('port-connected'));
-                connections.forEach(c=>{c.outPort.classList.add('port-connected');c.inPort.classList.add('port-connected');});
-            }
-
-            window.addEventListener('mousemove',e=>{
-                const c=canvasContainer.getBoundingClientRect(), x=e.clientX-c.left, y=e.clientY-c.top;
-                if(isDraggingNode&&draggedNode){
-                    draggedNode.x=x-dragOffset.x; draggedNode.y=y-dragOffset.y;
-                    draggedNode.element.style.left=draggedNode.x+'px';
-                    draggedNode.element.style.top=draggedNode.y+'px';
-                    updateConnections();
-                }
-                if(activePort){
-                    const p=activePort.el.getBoundingClientRect();
-                    const sx=p.left+p.width/2-c.left, sy=p.top+p.height/2-c.top;
-                    tempLine.setAttribute('d',bezier(sx,sy,x,y));
-                }
-            });
-            window.addEventListener('mouseup',e=>{
-                isDraggingNode=false; draggedNode=null;
-                if(activePort){
-                    const target=e.target.closest('.port');
-                    if(target){
-                        const tn=nodes.find(n=>n.id===target.closest('.flow-node').id);
-                        if(tn) finishConnection(target,tn);
-                    } else resetTempLine();
-                }
-            });
-
-            async function callGeminiLLM(prompt){
-                const res=await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{
-                    method:'POST', headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
-                });
-                if(!res.ok) throw new Error(`خطأ في الاتصال: ${res.status}`);
-                const d=await res.json();
-                return d.candidates?.[0]?.content?.parts?.[0]?.text || prompt;
-            }
-            async function callGeminiImage(prompt, ratio){
-                const res=await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,{
-                    method:'POST', headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({
-                        contents:[{parts:[{text:prompt}]}],
-                        generationConfig:{responseModalities:['TEXT','IMAGE'], imageConfig:{aspectRatio:ratio}}
-                    })
-                });
-                if(!res.ok){
-                    const err=await res.json();
-                    throw new Error(err.error?.message || 'فشل الاتصال');
-                }
-                const d=await res.json();
-                const img=d.candidates?.[0]?.content?.parts?.find(p=>p.inlineData);
-                if(img) return `data:${img.inlineData.mimeType};base64,${img.inlineData.data}`;
-                console.log(d);
-                throw new Error('لم يتم إرجاع صورة — تحقق من المفتاح');
-            }
-
-            async function executeNode(node){
-                log(`جاري التنفيذ: ${node.type}`,'process');
-                setStatus('جاري المعالجة...','busy');
-                try{
-                    if(node.type==='llm-expander'){
-                        const inConn=connections.find(c=>c.toNode.id===node.id);
-                        let text='';
-                        if(inConn){
-                            const src=inConn.fromNode;
-                            text=src.data.output || src.element.querySelector('.node-input-text')?.value?.trim();
-                        }
-                        if(!text){text='منظر طبيعي سحري';log('لا يوجد نص مدخل — تم استخدام نص افتراضي');}
-                        const style=node.element.querySelector('.node-style-select').value;
-                        const result=await callGeminiLLM(`أكتب وصفاً مفصلاً لهذه الصورة بنمط "${style}": "${text}". أرسل النص فقط بدون مقدمة.`);
-                        node.data.output=result;
-                        log(`تم التحسين: "${result.slice(0,50)}..."`,'success');
-                        connections.filter(c=>c.fromNode.id===node.id).forEach(c=>executeNode(c.toNode));
-                    } else if(node.type==='image-generator'){
-                        const inConn=connections.find(c=>c.toNode.id===node.id);
-                        let prompt='';
-                        if(inConn){
-                            const src=inConn.fromNode;
-                            prompt=src.data.output || src.element.querySelector('.node-input-text')?.value?.trim();
-                        }
-                        if(!prompt){prompt='مدينة مستقبلية بتقنية النيون، دقة عالية';log('لا يوجد وصف — تم استخدام وصف افتراضي');}
-                        const ratioText=node.element.querySelector('.node-aspect-select').value;
-                        const ratioMap={'1:1 مربع':'1:1','16:9 عرضي':'16:9','9:16 عمودي':'9:16'};
-                        const ratio=ratioMap[ratioText] || '1:1';
-                        log('جاري إنشاء الصورة...','process');
-                        const imgUrl=await callGeminiImage(prompt,ratio);
-                        node.data.outputImage=imgUrl;
-                        log('تم إنشاء الصورة بنجاح!','success');
-                        connections.filter(c=>c.fromNode.id===node.id).forEach(c=>{
-                            const next=c.toNode;
-                            if(next.type==='image-output'){
-                                const box=next.element.querySelector('.image-preview-box');
-                                box.innerHTML=`<img src="${imgUrl}" class="w-full h-full object-cover rounded-lg"/><a href="${imgUrl}" download="صورة-مولدة.png" class="absolute bottom-2 right-2 bg-slate-900/80 p-2 rounded text-white"><i class="fa-solid fa-download"></i></a>`;
-                                log('تم عرض الصورة ✅','success');
-                            } else executeNode(next);
-                        });
-                    }
-                    setStatus('جاهز ✅');
-                }catch(err){
-                    log(`خطأ: ${err.message}`,'error');
-                    setStatus('فشل ❌','error');
-                }
-            }
-
-            // أحداث الأزرار
-            document.querySelectorAll('.node-template').forEach(t=>t.onclick=()=>{
-                createNode(t.dataset.type, 180+Math.random()*80, 80+Math.random()*80);
-            });
-            document.getElementById('btn-load-preset').onclick=()=>{
-                nodesContainer.innerHTML=''; svgLayer.innerHTML='<path id="temp-line" class="temp-path hidden" d="M0 0"/>';
-                nodes=[]; connections=[];
-                const n1=createNode('text-prompt',40,60,{text:'تنين صغير لطيف يرتدي خوذة فارس، إضاءة سينمائية، تصميم ثلاثي الأبعاد'});
-                const n2=createNode('llm-expander',380,60);
-                const n3=createNode('image-generator',720,60);
-                const n4=createNode('image-output',1060,60);
-                setTimeout(()=>{
-                    const p1=n1.element.querySelector('.port-out'), p2=n2.element.querySelector('.port-in');
-                    const p3=n2.element.querySelector('.port-out'), p4=n3.element.querySelector('.port-in');
-                    const p5=n3.element.querySelector('.port-out'), p6=n4.element.querySelector('.port-in');
-                    if(p1&&p2){activePort={el:p1,node:n1,type:'out'};finishConnection(p2,n2);}
-                    if(p3&&p4){activePort={el:p3,node:n2,type:'out'};finishConnection(p4,n3);}
-                    if(p5&&p6){activePort={el:p5,node:n3,type:'out'};finishConnection(p6,n4);}
-                },150);
-            };
-            document.getElementById('btn-run-all').onclick=async()=>{
-                const roots=nodes.filter(n=>n.type==='text-prompt');
-                if(!roots.length){log('أضف عقدة نص أولاً!','error');return;}
-                for(const r of roots) await executeNode(r);
-            };
-            document.getElementById('btn-clear').onclick=()=>{
-                nodesContainer.innerHTML='';
-                svgLayer.innerHTML='<path id="temp-line" class="temp-path hidden" d="M0 0"/>';
-                nodes=[]; connections=[];
-                log('تم مسح اللوحة');
-            };
-            window.dispatchEvent(new Event('load'));
-        }
-    </script>
+async function generateCode() {
+    const prompt = document.getElementById('code-prompt').value.trim();
+    if (!prompt) { alert("صف الكود الذي تريد إنشائه!"); return; }
+    
+    const fullPrompt = `أنت مبرمج خبير. أنشئ الكود التالي مع شرح بسيط: ${prompt}`;
+    
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+    
+    try {
+        const result = await queryAI(fullPrompt);
+        document.getElementById('result').textContent = result;
+        document.getElementById('result').style.display = 'block';
+    } catch (err) {
+        document.getElementById('result').innerHTML = "❌ خطأ: " + err.message;
+        document.getElementById('result').style.display = 'block';
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
+</script>
 </body>
 </html>
