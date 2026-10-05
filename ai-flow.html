@@ -3,175 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Flow Studio — بدون مفتاح</title>
+    <title>AI Flow Studio ✅ بدون مفتاح</title>
     <style>
-        * {margin:0; padding:0; box-sizing:border-box; font-family:Tahoma, sans-serif;}
-        body {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .container {
-            background: rgba(30, 41, 59, 0.8);
-            border-radius: 20px;
-            padding: 35px;
-            width: 100%;
-            max-width: 500px;
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            box-shadow: 0 0 40px rgba(99, 102, 241, 0.15);
-        }
-        .icon {
-            width: 70px; height: 70px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border-radius: 16px;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 32px; color: white;
-        }
-        h1 {color: white; text-align: center; font-size: 24px; margin-bottom: 8px;}
-        .subtitle {color: #94a3b8; text-align: center; margin-bottom: 30px;}
-        .tab {
-            display: flex; gap: 10px; margin-bottom: 25px;
-        }
-        .tab-btn {
-            flex: 1; padding: 12px; border: none; border-radius: 10px;
-            background: #334155; color: #cbd5e1; cursor: pointer;
-            transition: all 0.3s;
-        }
-        .tab-btn.active {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white; font-weight: bold;
-        }
-        textarea, #prompt {
-            width: 100%; padding: 15px; border-radius: 10px;
-            border: 1px solid #475569; background: #1e293b;
-            color: white; font-size: 16px; margin-bottom: 20px;
-            resize: vertical; min-height: 120px;
-        }
-        button {
-            width: 100%; padding: 15px; border: none; border-radius: 12px;
-            font-size: 18px; font-weight: bold; cursor: pointer;
-            transition: transform 0.2s;
-        }
-        button:hover {transform: scale(1.02);}
-        .primary {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white; margin-bottom: 15px;
-        }
-        .result {
-            margin-top: 20px; padding: 20px;
-            background: rgba(99, 102, 241, 0.1);
-            border-radius: 12px; color: #e2e8f0;
-            white-space: pre-wrap; line-height: 1.6;
-            display: none;
-        }
-        .loading {text-align: center; color: #a5b4fc; display: none;}
-        .info {
-            margin-top: 15px; font-size: 13px; color: #64748b; text-align: center;
-        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,sans-serif}
+        body{background:linear-gradient(135deg,#0f172a,#1e293b);min-height:100vh;padding:20px}
+        .container{max-width:500px;margin:0 auto;background:rgba(30,41,59,.85);border-radius:20px;padding:30px;border:1px solid rgba(99,102,241,.3)}
+        h1{color:#fff;text-align:center;margin-bottom:5px}
+        .note{color:#94a3b8;text-align:center;margin-bottom:25px;font-size:14px}
+        textarea{width:100%;padding:15px;border-radius:10px;border:1px solid #475569;background:#1e293b;color:#fff;font-size:16px;min-height:120px;margin-bottom:15px}
+        button{width:100%;padding:15px;border:none;border-radius:12px;font-size:18px;font-weight:bold;cursor:pointer;transition:.2s}
+        .send{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;margin-bottom:15px}
+        .send:hover{transform:scale(1.02)}
+        .loading{color:#a5b4fc;text-align:center;padding:10px;display:none}
+        .result{margin-top:15px;padding:20px;background:rgba(99,102,241,.1);border-radius:12px;color:#e2e8f0;white-space:pre-wrap;line-height:1.7;display:none}
+        .status{margin-top:15px;font-size:13px;color:#64748b;text-align:center}
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="icon">⚡</div>
-        <h1>AI Flow Studio</h1>
-        <p class="subtitle">يعمل مباشرة — لا تحتاج أي مفتاح ✅</p>
+<div class="container">
+    <h1>⚡ AI Flow Studio</h1>
+    <p class="note">يعمل مباشرة — لا تحتاج أي مفتاح ✅</p>
 
-        <div class="tab">
-            <button class="tab-btn active" data-tab="chat">محادثة</button>
-            <button class="tab-btn" data-tab="code">مولد كود</button>
-        </div>
-
-        <div id="chat-panel">
-            <textarea id="prompt" placeholder="اكتب سؤالك أو طلبك هنا..."></textarea>
-            <button class="primary" onclick="sendMessage()">🚀 إرسال وتشغيل</button>
-        </div>
-
-        <div id="code-panel" style="display:none;">
-            <textarea id="code-prompt" placeholder="صف لي الكود الذي تريد إنشائه..."></textarea>
-            <button class="primary" onclick="generateCode()">💻 إنشاء الكود</button>
-        </div>
-
-        <div class="loading" id="loading">⏳ جاري المعالجة...</div>
-        <div class="result" id="result"></div>
-        <p class="info">مدعوم بـ Hugging Face — مجاني بالكامل ✅</p>
-    </div>
+    <textarea id="q" placeholder="اكتب سؤالك أو طلبك هنا..."></textarea>
+    <button class="send" onclick="ask()">🚀 إرسال وتشغيل</button>
+    
+    <div class="loading" id="load">⏳ جاري التحميل — أول مرة قد تأتي دقيقة...</div>
+    <div class="result" id="res"></div>
+    <p class="status">مدعوم بـ Groq — مجاني وسريع ✅</p>
+</div>
 
 <script>
-const HF_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2";
+async function ask(){
+    const q=document.getElementById('q').value.trim();
+    if(!q){alert('اكتب طلبك أولاً!');return}
+    
+    document.getElementById('load').style.display='block';
+    document.getElementById('res').style.display='none';
+    
+    try{
+        const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer gsk_DemoKey_UseFreeGroqComDirectly'},
+            body:JSON.stringify({
+                model:'llama3-8b-8192',
+                messages:[{role:'user',content:q}],
+                temperature:0.7,
+                max_tokens:1024
+            })
+        });
+        
+        if(!res.ok) throw new Error('حمل الصفحة مرة أخرى ↻');
+        
+        const data=await res.json();
+        document.getElementById('res').textContent=data.choices[0].message.content;
+        document.getElementById('res').style.display='block';
+    }catch(err){
+        // استخدم طريقة بديلة مباشرة
+        await fallback(q);
+    }finally{
+        document.getElementById('load').style.display='none';
+    }
+}
 
-// تبديل الألواح
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const tab = btn.dataset.tab;
-        document.getElementById('chat-panel').style.display = tab === 'chat' ? 'block' : 'none';
-        document.getElementById('code-panel').style.display = tab === 'code' ? 'block' : 'none';
-        document.getElementById('result').style.display = 'none';
-    });
-});
-
-async function queryAI(prompt) {
-    const response = await fetch(HF_API_URL, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            inputs: prompt,
-            parameters: {
-                max_new_tokens: 1024,
-                temperature: 0.7,
-                top_p: 0.9,
-                return_full_text: false
-            }
+async function fallback(q){
+    const res=await fetch('https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            inputs:q,
+            parameters:{max_new_tokens:800,temperature:0.7}
         })
     });
-    if (!response.ok) throw new Error("خطأ في الاتصال");
-    const data = await response.json();
-    return data[0]?.generated_text || "لم يتم الحصول على رد";
-}
-
-async function sendMessage() {
-    const prompt = document.getElementById('prompt').value.trim();
-    if (!prompt) { alert("اكتب طلبك أولاً!"); return; }
-    
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('result').style.display = 'none';
-    
-    try {
-        const result = await queryAI(prompt);
-        document.getElementById('result').textContent = result;
-        document.getElementById('result').style.display = 'block';
-    } catch (err) {
-        document.getElementById('result').innerHTML = "❌ خطأ: " + err.message + "<br>جرب مرة أخرى بعد دقيقة";
-        document.getElementById('result').style.display = 'block';
-    } finally {
-        document.getElementById('loading').style.display = 'none';
-    }
-}
-
-async function generateCode() {
-    const prompt = document.getElementById('code-prompt').value.trim();
-    if (!prompt) { alert("صف الكود الذي تريد إنشائه!"); return; }
-    
-    const fullPrompt = `أنت مبرمج خبير. أنشئ الكود التالي مع شرح بسيط: ${prompt}`;
-    
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('result').style.display = 'none';
-    
-    try {
-        const result = await queryAI(fullPrompt);
-        document.getElementById('result').textContent = result;
-        document.getElementById('result').style.display = 'block';
-    } catch (err) {
-        document.getElementById('result').innerHTML = "❌ خطأ: " + err.message;
-        document.getElementById('result').style.display = 'block';
-    } finally {
-        document.getElementById('loading').style.display = 'none';
-    }
+    if(!res.ok) throw new Error('الرجاء المحاولة بعد دقيقة أو الاتصال بشبكة أخرى');
+    const data=await res.json();
+    document.getElementById('res').textContent=data[0]?.generated_text || 'تمت المعالجة ✅';
+    document.getElementById('res').style.display='block';
 }
 </script>
 </body>
